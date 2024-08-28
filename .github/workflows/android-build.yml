@@ -9,14 +9,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        goarch: [arm64, arm, 386, amd64]
-        include:
-          - goarch: arm
-            goarm: 7
-          - goarch: 386
-            gomips: softfloat
     steps:
     - uses: actions/checkout@v2
 
@@ -25,21 +17,18 @@ jobs:
       with:
         go-version: 1.17
 
+    - name: Install xgo
+      run: go install github.com/crazy-max/xgo@latest
+
     - name: Download dependencies
       run: go mod tidy
 
-    - name: Build
-      env:
-        GOOS: android
-        GOARCH: ${{ matrix.goarch }}
-        GOARM: ${{ matrix.goarm }}
-        GOMIPS: ${{ matrix.gomips }}
-        CGO_ENABLED: 0
+    - name: Build for Android
       run: |
-        go build -o speedtest-android-${{ matrix.goarch }} speedtest.go
+        xgo --targets=android/arm,android/arm64,android/386,android/amd64 -out speedtest-android .
 
-    - name: Upload artifact
+    - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
-        name: speedtest-android-${{ matrix.goarch }}
-        path: speedtest-android-${{ matrix.goarch }}
+        name: android-binaries
+        path: speedtest-android-android-*
