@@ -12,6 +12,11 @@ jobs:
     strategy:
       matrix:
         goarch: [arm64, arm, 386, amd64]
+        include:
+          - goarch: arm
+            goarm: 7
+          - goarch: 386
+            gomips: softfloat
     steps:
     - uses: actions/checkout@v2
 
@@ -27,6 +32,9 @@ jobs:
       env:
         GOOS: android
         GOARCH: ${{ matrix.goarch }}
+        GOARM: ${{ matrix.goarm }}
+        GOMIPS: ${{ matrix.gomips }}
+        CGO_ENABLED: 0
       run: |
         go build -o speedtest-android-${{ matrix.goarch }} speedtest.go
 
